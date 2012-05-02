@@ -30,6 +30,10 @@ class Chef
 
     attr_accessor :new_resource, :current_resource, :run_context
 
+    def whyrun_supported?
+      false
+    end
+
     def initialize(new_resource, run_context)
       @new_resource = new_resource
       @current_resource = nil
@@ -58,27 +62,30 @@ class Chef
     end
 
     def action_nothing
-      Chef::Log.debug("Doing nothing for #{@new_resource.to_s}")
+      converge_by("Would do nothing for #{@new_resource.to_s}") do
+        Chef::Log.debug("Doing nothing for #{@new_resource.to_s}")
+      end
       true
     end
 
     def run_action(action)
-      # TODO: it would be preferable to get the action to be executed in the
-      # constructor...
       load_current_resource
       define_resource_requirements
       process_resource_requirements(action)
       send("action_#{action}")
       converge
+        #if whyrun && !whyrun-supported converge_by("bypassing action #{action}, whyrun not supported in resource provider ") do
+        #  true
+        #end
     end
-    
-    # exposed publically for accessibility in testing
+
+    # exposed publicly for accessibility in testing
     def process_resource_requirements(action)
       requirements.run(:all_actions) unless action == :nothing
       requirements.run(action)
     end
 
-    # exposed publically for accessibility in testing 
+    # exposed publicly for accessibility in testing 
     def converge
       converge_actions.converge!
       new_resource.updated_by_last_action(true) unless converge_actions.empty?

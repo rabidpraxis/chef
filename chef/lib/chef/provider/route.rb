@@ -60,6 +60,10 @@ class Chef::Provider::Route < Chef::Provider
             '255.255.255.254'  => '31',
             '255.255.255.255'  => '32' }
 
+    def whyrun_supported?
+      true
+    end
+
     def load_current_resource
       is_running = nil
 
