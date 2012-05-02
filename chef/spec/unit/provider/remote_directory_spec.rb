@@ -148,13 +148,12 @@ describe Chef::Provider::RemoteDirectory do
 
       it "removes directory symlinks properly" do
         symlinked_dir_path = @destination_dir + '/symlinked_dir'
-        @provider.action_create
-
+        @provider.run_action(:create)
         Dir.mktmpdir do |tmp_dir|
           FileUtils.ln_s(tmp_dir, symlinked_dir_path)
           ::File.exist?(symlinked_dir_path).should be_true
 
-          @provider.action_create
+          @provider.run_action(:create)
 
           ::File.exist?(symlinked_dir_path).should be_false
           ::File.exist?(tmp_dir).should be_true
