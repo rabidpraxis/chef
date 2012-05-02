@@ -58,7 +58,7 @@ describe Chef::Provider::ErlCall do
       @provider.should_receive(:popen4).with(expected_cmd, :waitlast => true).and_return([@pid, @stdin, @stdout, @stderr])
       Process.should_receive(:wait).with(@pid)
 
-      @provider.action_run
+      @provider.run_action(:run)
 
       @stdin.string.should == "#{@new_resource.code}\n"
     end
@@ -75,7 +75,7 @@ describe Chef::Provider::ErlCall do
       @provider.should_receive(:popen4).with("erl_call -e  -name chef@localhost ", :waitlast => true).and_return([@pid, @stdin, @stdout, @stderr])
       Process.should_receive(:wait).with(@pid)
 
-      @provider.action_run
+      @provider.run_action(:run)
 
       @stdin.string.should == "#{@new_resource.code}\n"
     end
