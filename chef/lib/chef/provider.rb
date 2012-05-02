@@ -29,16 +29,20 @@ class Chef
     include Chef::Mixin::EnforceOwnershipAndPermissions
 
     attr_accessor :new_resource, :current_resource, :run_context
-
-    def whyrun_supported?
-      false
-    end
-
+    
     def initialize(new_resource, run_context)
       @new_resource = new_resource
       @current_resource = nil
       @run_context = run_context
       @converge_actions = nil
+    end
+
+    def whyrun_mode?
+      Chef::Config[:why_run]
+    end
+
+    def whyrun_supported?
+      false
     end
 
     def node
@@ -72,11 +76,22 @@ class Chef
       load_current_resource
       define_resource_requirements
       process_resource_requirements(action)
-      send("action_#{action}")
+
+      # user-defined providers including LWRPs may 
+      # not include whyrun support - if they don't support it
+      # we can't execute any actions while we're running in
+      # whyrun mode. Instead we 'fake' whyrun by documenting that 
+      # we can't execute the action. 
+      # in non-whyrun mode, this will still cause the action to be
+      # executed normally.
+      if whyrun_supported?
+        send("action_#{action}")
+      else
+        converge_by("bypassing action #{action}, whyrun not supported in resource provider #{self.class.name} ") do
+          send("action_#{action}")
+        end
+      end
       converge
-        #if whyrun && !whyrun-supported converge_by("bypassing action #{action}, whyrun not supported in resource provider ") do
-        #  true
-        #end
     end
 
     # exposed publicly for accessibility in testing
